@@ -1,0 +1,25 @@
+# Use Node.js LTS
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package.json and package-lock.json first (cache optimization)
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install --production
+
+# Install nodemon globally only for development
+ARG NODE_ENV
+RUN if [ "$NODE_ENV" = "development" ]; then npm install -g nodemon; fi
+
+# Copy source code
+COPY . .
+
+# Expose port from .env
+ARG PORT
+ENV PORT=${PORT}
+
+# Default command for development
+CMD ["npm", "start"]
