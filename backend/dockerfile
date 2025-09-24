@@ -1,25 +1,17 @@
-# Use Node.js LTS
+# Étape 1 : Image légère Node.js
 FROM node:20-alpine
 
-# Set working directory
+# Étape 2 : Répertoire de travail
 WORKDIR /app
 
-# Copy package.json and package-lock.json first (cache optimization)
+# Étape 3 : Copier uniquement package.json pour installer dépendances
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --production
+# Étape 4 : Installer dépendances
+RUN npm install
 
-# Install nodemon globally only for development
-ARG NODE_ENV
-RUN if [ "$NODE_ENV" = "development" ]; then npm install -g nodemon; fi
-
-# Copy source code
+# Étape 5 : Copier tout le code
 COPY . .
 
-# Expose port from .env
-ARG PORT
-ENV PORT=${PORT}
-
-# Default command for development
-CMD ["npm", "start"]
+# Étape 6 : Lancer nodemon pour le dev
+CMD ["npx", "nodemon", "server.js"]
