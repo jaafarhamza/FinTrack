@@ -2,6 +2,8 @@ const express = require("express");
 const path = require("path");
 const dotenv = require("dotenv");
 const { Sequelize } = require("sequelize");
+const session = require("express-session");
+const SequelizeStore = require("connect-session-sequelize")(session.Store);
 
 // Load environment variables from root .env file
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
@@ -33,15 +35,36 @@ const sequelize = new Sequelize(
   }
 );
 
-// Import routes
-const authRoutes = require('./routes/authRoutes');
+const sessionStore = new SequelizeStore({
+  db: sequelize,
+});
 
-// Routes
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  store: sessionStore,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, 
+    maxAge: 24 * 60 * 60 * 1000 
+  }
+}));
+
+sessionStore.sync();
+
+const authRoutes = require('./routes/authRoutes');
+const { showDashboard } = require('./controllers/authController');
+
 app.use('/auth', authRoutes);
 
-// Home route - redirect to registration
+app.get('/dashboard', showDashboard);
+
 app.get('/', (req, res) => {
-  res.redirect('/auth/register');
+  if (req.session.userId) {
+    res.redirect('/dashboard');
+  } else {
+    res.redirect('/auth/register');
+  }
 });
 
 // Test database connection
