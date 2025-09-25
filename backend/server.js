@@ -9,9 +9,14 @@ dotenv.config({ path: path.join(__dirname, "..", ".env") });
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Database connection
 const dbHost = process.env.NODE_ENV === 'development' && !process.env.DOCKER ? 'localhost' : process.env.DB_HOST;
@@ -28,6 +33,17 @@ const sequelize = new Sequelize(
   }
 );
 
+// Import routes
+const authRoutes = require('./routes/authRoutes');
+
+// Routes
+app.use('/auth', authRoutes);
+
+// Home route - redirect to registration
+app.get('/', (req, res) => {
+  res.redirect('/auth/register');
+});
+
 // Test database connection
 async function testDatabaseConnection() {
   try {
@@ -42,6 +58,9 @@ async function testDatabaseConnection() {
 
 // Start server
 app.listen(PORT, async () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Registration: http://localhost:${PORT}/auth/register`);
+  
   // Test database connection 
   await testDatabaseConnection();
 });

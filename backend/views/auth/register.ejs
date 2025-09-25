@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#1E40AF',
+                        accent: '#10B981'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- Header -->
+        <%- include('../partials/header', { subtitle: 'Create your account to start managing your finances' }) %>
+
+        <!-- Registration Form -->
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-6 text-center">Sign Up</h2>
+            
+            <!-- Messages -->
+            <%- include('../components/messages') %>
+
+            <form action="/auth/register" method="POST" class="space-y-6">
+                <!-- First Name -->
+                <%- include('../components/formField', {
+                    fieldName: 'firstName',
+                    label: 'First Name',
+                    type: 'text',
+                    icon: 'user',
+                    value: formData.firstName,
+                    placeholder: 'Enter your first name'
+                }) %>
+
+                <!-- Last Name -->
+                <%- include('../components/formField', {
+                    fieldName: 'lastName',
+                    label: 'Last Name',
+                    type: 'text',
+                    icon: 'user',
+                    value: formData.lastName,
+                    placeholder: 'Enter your last name'
+                }) %>
+
+                <!-- Email -->
+                <%- include('../components/formField', {
+                    fieldName: 'email',
+                    label: 'Email Address',
+                    type: 'email',
+                    icon: 'envelope',
+                    value: formData.email,
+                    placeholder: 'Enter your email address'
+                }) %>
+
+                <!-- Password -->
+                <%- include('../components/formField', {
+                    fieldName: 'password',
+                    label: 'Password',
+                    type: 'password',
+                    icon: 'lock',
+                    placeholder: 'Create a password',
+                    additionalAttributes: 'minlength="6"',
+                    helpText: 'Must contain uppercase, lowercase, and numbers'
+                }) %>
+
+                <!-- Confirm Password -->
+                <%- include('../components/formField', {
+                    fieldName: 'confirmPassword',
+                    label: 'Confirm Password',
+                    type: 'password',
+                    icon: 'lock',
+                    placeholder: 'Confirm your password',
+                    additionalAttributes: 'minlength="6"'
+                }) %>
+
+                <!-- Submit Button -->
+                <%- include('../components/submitButton', {
+                    icon: 'user-plus',
+                    text: 'Create Account'
+                }) %>
+            </form>
+
+            <!-- Form Footer -->
+            <%- include('../components/formFooter', {
+                question: 'Already have an account? ',
+                linkUrl: '/auth/login',
+                linkText: 'Sign in here'
+            }) %>
+        </div>
+
+        <!-- Footer -->
+        <%- include('../partials/footer') %>
+    </div>
+
+</body>
+</html>
