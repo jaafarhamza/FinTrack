@@ -59,11 +59,22 @@ app.use('/auth', authRoutes);
 
 app.get('/dashboard', showDashboard);
 
+// Home page route
+app.get('/home', (req, res) => {
+  if (req.session.userId) {
+    return res.redirect('/dashboard');
+  }
+  
+  res.render('home', {
+    title: 'FinSolutions - Professional Financial Management'
+  });
+});
+
 app.get('/', (req, res) => {
   if (req.session.userId) {
     res.redirect('/dashboard');
   } else {
-    res.redirect('/auth/register');
+    res.redirect('/home');
   }
 });
 

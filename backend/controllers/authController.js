@@ -87,7 +87,7 @@ const login = async (req, res) => {
     
     if (!isValidPassword) {
       return res.render('auth/login', {
-        title: 'Login - FinTrack',
+        title: 'Login - FinSolutions',
         error: 'Invalid email or password',
         success: null,
         formData: req.body,
