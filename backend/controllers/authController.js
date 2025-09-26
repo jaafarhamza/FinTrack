@@ -1,6 +1,8 @@
 const AuthService = require('../services/authService');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const User = require('../models/User');
+const emailService = require('../services/emailService');
 
 const showRegister = (req, res) => {
   if (req.session.userId) {
@@ -141,11 +143,227 @@ const logout = (req, res) => {
   });
 };
 
+// Show forgot password form
+
+const showForgotPassword = (req, res) => {
+  if (req.session.userId) {
+    return res.redirect('/dashboard');
+  }
+  
+  res.render('auth/forgotPassword', { 
+    title: 'Forgot Password - FinTrack',
+    error: null,
+    success: null,
+    formData: {},
+    validationErrors: [],
+    warnings: []
+  });
+};
+
+// forgot password request
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Find user by email
+    const user = await User.findOne({ where: { email } });
+    
+    if (!user) {
+      return res.render('auth/forgotPassword', {
+        title: 'Forgot Password - FinTrack',
+        error: null,
+        success: 'If an account with that email exists, we have sent a password reset link.',
+        formData: {},
+        validationErrors: [],
+        warnings: []
+      });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+    // Update user with reset token
+    await user.update({
+      resetPasswordToken: resetToken,
+      resetPasswordExpires: resetTokenExpiry
+    });
+
+    // Send email 
+    const resetUrl = `${req.protocol}://${req.get('host')}/auth/reset-password?token=${resetToken}`;
+    
+    // Send password reset email
+    const emailResult = await emailService.sendPasswordResetEmail(
+      email, 
+      resetUrl, 
+      `${user.firstName} ${user.lastName}`
+    );
+
+    if (emailResult.success) {
+      console.log('Password reset email sent successfully to:', email);
+    } else {
+      console.error('Failed to send password reset email:', emailResult.error);
+    }
+
+    res.render('auth/forgotPassword', {
+      title: 'Forgot Password - FinTrack',
+      error: null,
+      success: 'If an account with that email exists, we have sent a password reset link.',
+      formData: {},
+      validationErrors: [],
+      warnings: []
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.render('auth/forgotPassword', {
+      title: 'Forgot Password - FinTrack',
+      error: 'An error occurred. Please try again.',
+      success: null,
+      formData: req.body,
+      validationErrors: [],
+      warnings: []
+    });
+  }
+};
+
+// Show reset password form
+const showResetPassword = async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.render('auth/forgotPassword', {
+        title: 'Forgot Password - FinTrack',
+        error: 'Invalid or missing reset token.',
+        success: null,
+        formData: {},
+        validationErrors: [],
+        warnings: []
+      });
+    }
+
+    // Find user with valid reset token
+    const user = await User.findOne({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpires: {
+          [require('sequelize').Op.gt]: new Date()
+        }
+      }
+    });
+
+    if (!user) {
+      return res.render('auth/forgotPassword', {
+        title: 'Forgot Password - FinTrack',
+        error: 'Invalid or expired reset token. Please request a new password reset.',
+        success: null,
+        formData: {},
+        validationErrors: [],
+        warnings: []
+      });
+    }
+
+    res.render('auth/resetPassword', {
+      title: 'Reset Password - FinTrack',
+      token: token,
+      error: null,
+      success: null,
+      formData: {},
+      validationErrors: [],
+      warnings: []
+    });
+  } catch (error) {
+    console.error('Show reset password error:', error);
+    res.render('auth/forgotPassword', {
+      title: 'Forgot Password - FinTrack',
+      error: 'An error occurred. Please try again.',
+      success: null,
+      formData: {},
+      validationErrors: [],
+      warnings: []
+    });
+  }
+};
+
+// Handle password reset
+
+const resetPassword = async (req, res) => {
+  try {
+    const { token, password, confirmPassword } = req.body;
+
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      return res.render('auth/resetPassword', {
+        title: 'Reset Password - FinTrack',
+        token: token,
+        error: 'Passwords do not match.',
+        success: null,
+        formData: req.body,
+        validationErrors: [],
+        warnings: []
+      });
+    }
+
+    // Find user with valid reset token
+    const user = await User.findOne({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpires: {
+          [require('sequelize').Op.gt]: new Date()
+        }
+      }
+    });
+
+    if (!user) {
+      return res.render('auth/forgotPassword', {
+        title: 'Forgot Password - FinTrack',
+        error: 'Invalid or expired reset token. Please request a new password reset.',
+        success: null,
+        formData: {},
+        validationErrors: [],
+        warnings: []
+      });
+    }
+
+    // Update password
+    await user.update({
+      password: password, 
+      resetPasswordToken: null,
+      resetPasswordExpires: null
+    });
+
+    res.render('auth/login', {
+      title: 'Login - FinTrack',
+      error: null,
+      success: 'Password has been reset successfully. Please login with your new password.',
+      formData: {},
+      validationErrors: [],
+      warnings: []
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.render('auth/resetPassword', {
+      title: 'Reset Password - FinTrack',
+      token: req.body.token,
+      error: 'An error occurred. Please try again.',
+      success: null,
+      formData: req.body,
+      validationErrors: [],
+      warnings: []
+    });
+  }
+};
+
 module.exports = {
   showRegister,
   register,
   showLogin,
   login,
   showDashboard,
-  logout
+  logout,
+  showForgotPassword,
+  forgotPassword,
+  showResetPassword,
+  resetPassword
 };
