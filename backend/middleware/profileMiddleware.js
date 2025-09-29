@@ -1,7 +1,16 @@
 const { body, validationResult } = require('express-validator');
 const { isValidEmail, isStrongPassword, isValidName, sanitizeInput } = require('../utils/authHelpers');
 
-const validateRegistration = [
+// Authentication middleware
+const requireAuth = (req, res, next) => {
+  if (!req.session.userId) {
+    return res.redirect('/auth/login');
+  }
+  next();
+};
+
+// Profile update validation
+const validateProfileUpdate = [
   body('firstName')
     .trim()
     .notEmpty()
@@ -37,9 +46,22 @@ const validateRegistration = [
     .isLength({ max: 100 })
     .withMessage('Email must be less than 100 characters'),
 
-  body('password')
+  body('currency')
     .notEmpty()
-    .withMessage('Password is required')
+    .withMessage('Currency is required')
+    .isIn(['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY'])
+    .withMessage('Please select a valid currency')
+];
+
+// Password update validation
+const validatePasswordUpdate = [
+  body('currentPassword')
+    .notEmpty()
+    .withMessage('Current password is required'),
+
+  body('newPassword')
+    .notEmpty()
+    .withMessage('New password is required')
     .custom((value) => {
       const passwordValidation = isStrongPassword(value);
       if (!passwordValidation.isValid) {
@@ -52,13 +74,14 @@ const validateRegistration = [
     .notEmpty()
     .withMessage('Password confirmation is required')
     .custom((value, { req }) => {
-      if (value !== req.body.password) {
+      if (value !== req.body.newPassword) {
         throw new Error('Passwords do not match');
       }
       return true;
     })
 ];
 
+// Handle validation errors for profile
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   
@@ -68,47 +91,53 @@ const handleValidationErrors = (req, res, next) => {
       message: error.msg
     }));
 
-    return res.render('auth/register', {
-      title: 'Register - FinTrack',
+    return res.render('profile', {
+      title: 'Profile - FinTrack',
+      user: req.session.user,
       error: formattedErrors[0].message,
       success: null,
       formData: req.body,
-      validationErrors: formattedErrors,
-      warnings: []
+      validationErrors: formattedErrors
     });
   }
   
   next();
 };
 
-const customValidations = {
-  checkEmailExists: async (req, res, next) => {
-    try {
-      const User = require('../models/User');
-      const { email } = req.body;
-      
-      if (email) {
-        const existingUser = await User.findOne({ where: { email } });
-        if (existingUser) {
-          return res.render('auth/register', {
-            title: 'Register - FinTrack',
-            error: 'Email already registered. Please use a different email.',
-            success: null,
-            formData: req.body,
-            validationErrors: [],
-            warnings: []
-          });
-        }
+// Check if email exists for profile update (excluding current user)
+const checkEmailExistsForProfile = async (req, res, next) => {
+  try {
+    const User = require('../models/User');
+    const { email } = req.body;
+    const userId = req.session.userId;
+    
+    if (email) {
+      const existingUser = await User.findOne({ 
+        where: { 
+          email,
+          id: { [require('sequelize').Op.ne]: userId }
+        } 
+      });
+      if (existingUser) {
+        return res.render('profile', {
+          title: 'Profile - FinTrack',
+          user: req.session.user,
+          error: 'Email already exists. Please use a different email.',
+          success: null,
+          formData: req.body,
+          validationErrors: []
+        });
       }
-      
-      next();
-    } catch (error) {
-      console.error('Email validation error:', error);
-      next(error);
     }
-},
+    
+    next();
+  } catch (error) {
+    console.error('Email validation error:', error);
+    next(error);
+  }
 };
 
+// Sanitize request body
 const sanitizeRequestBody = (req, res, next) => {
   if (req.body) {
     Object.keys(req.body).forEach(key => {
@@ -121,8 +150,10 @@ const sanitizeRequestBody = (req, res, next) => {
 };
 
 module.exports = {
-  validateRegistration,
+  requireAuth,
+  validateProfileUpdate,
+  validatePasswordUpdate,
   handleValidationErrors,
-  customValidations,
-  sanitizeRequestBody,
+  checkEmailExistsForProfile,
+  sanitizeRequestBody
 };

@@ -53,9 +53,11 @@ app.use(session({
 sessionStore.sync();
 
 const authRoutes = require('./routes/authRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 const { showDashboard } = require('./controllers/authController');
 
 app.use('/auth', authRoutes);
+app.use('/profile', profileRoutes);
 
 app.get('/dashboard', showDashboard);
 
