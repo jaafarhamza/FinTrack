@@ -54,12 +54,13 @@ sessionStore.sync();
 
 const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
-const { showDashboard } = require('./controllers/authController');
+const { showDashboard, updateBalance } = require('./controllers/authController');
 
 app.use('/auth', authRoutes);
 app.use('/profile', profileRoutes);
 
 app.get('/dashboard', showDashboard);
+app.post('/dashboard/update-balance', updateBalance);
 
 // Home page route
 app.get('/home', (req, res) => {

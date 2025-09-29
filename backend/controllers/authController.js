@@ -134,6 +134,51 @@ const showDashboard = (req, res) => {
   });
 };
 
+// Update user balance
+const updateBalance = async (req, res) => {
+  try {
+    // Redirect to login if not authenticated
+    if (!req.session.userId) {
+      return res.redirect('/auth/login');
+    }
+
+    const { newBalance } = req.body;
+    
+    // Validate balance
+    if (!newBalance || isNaN(newBalance) || parseFloat(newBalance) < 0) {
+      return res.render('dashboard', {
+        title: 'Dashboard - FinTrack',
+        user: req.session.user,
+        error: 'Please enter a valid balance amount.'
+      });
+    }
+
+    // Update user balance in database
+    const user = await User.findByPk(req.session.userId);
+    if (!user) {
+      return res.redirect('/auth/login');
+    }
+
+    await user.update({ balance: parseFloat(newBalance) });
+
+    // Update session with new balance
+    req.session.user.balance = parseFloat(newBalance);
+
+    res.render('dashboard', {
+      title: 'Dashboard - FinTrack',
+      user: req.session.user,
+      success: 'Balance updated successfully!'
+    });
+  } catch (error) {
+    console.error('Update balance error:', error);
+    res.render('dashboard', {
+      title: 'Dashboard - FinTrack',
+      user: req.session.user,
+      error: 'An error occurred while updating your balance. Please try again.'
+    });
+  }
+};
+
 const logout = (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -361,6 +406,7 @@ module.exports = {
   showLogin,
   login,
   showDashboard,
+  updateBalance,
   logout,
   showForgotPassword,
   forgotPassword,

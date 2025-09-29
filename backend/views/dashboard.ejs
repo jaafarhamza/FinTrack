@@ -51,5 +51,114 @@
             </div>
         </div>
     </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Success/Error Messages -->
+        <% if (typeof success !== 'undefined' && success) { %>
+            <div class="max-w-4xl mx-auto mb-6">
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <%= success %>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+        
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="max-w-4xl mx-auto mb-6">
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <%= error %>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+
+        <!-- Balance Card - Top Priority -->
+        <div class=" mx-auto mb-8">
+            <div class="relative rounded-xl p-8 text-white overflow-hidden">
+                <div class="absolute inset-0 z-0">
+                    <img src="/img/balance_bg.png" alt="Balance Background" class="w-full h-full object-cover opacity-50">
+                </div>
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-700 to-transparent z-10"></div>
+                <div class="relative z-20">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-semibold mb-2">Current Balance</h2>
+                        <p class="text-blue-100 mb-4">Hello <%= user.firstName %>! Here's your financial overview</p>
+                        <div class="text-4xl font-bold">
+                            <%= user.currency %> <%= user.balance %>
+                        </div>
+                    </div>
+                    <div class="flex space-x-4">
+                        <button onclick="openBalanceModal()" 
+                                class="bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold hover:text-blue-700 hover:bg-transparent transition duration-200 flex items-center">
+                            <i class="fas fa-edit mr-2"></i>Update Balance
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Balance Update Modal -->
+    <div id="balanceModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-semibold text-gray-800">Update Balance</h3>
+                <button onclick="closeBalanceModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <form action="/dashboard/update-balance" method="POST" id="balanceForm">
+                <div class="mb-6">
+                    <label for="newBalance" class="block text-sm font-medium text-gray-700 mb-2">
+                        New Balance (<%= user.currency %>)
+                    </label>
+                    <input type="number" 
+                           id="newBalance" 
+                           name="newBalance" 
+                           step="0.01"
+                           value="<%= user.balance %>"
+                           required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200">
+                </div>
+                
+                <div class="flex space-x-4">
+                    <button type="button" 
+                            onclick="closeBalanceModal()"
+                            class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition duration-200">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200">
+                        Update Balance
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openBalanceModal() {
+            document.getElementById('balanceModal').classList.remove('hidden');
+            document.getElementById('balanceModal').classList.add('flex');
+        }
+
+        function closeBalanceModal() {
+            document.getElementById('balanceModal').classList.add('hidden');
+            document.getElementById('balanceModal').classList.remove('flex');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('balanceModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeBalanceModal();
+            }
+        });
+    </script>
 </body>
 </html>
