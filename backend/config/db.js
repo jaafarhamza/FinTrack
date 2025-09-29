@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 
 dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
 
-const dbHost = process.env.NODE_ENV === 'development' && !process.env.DOCKER ? 'localhost' : process.env.DB_HOST;
+const dbHost = process.env.DB_HOST;
 
 const sequelize = new Sequelize(
   process.env.MYSQL_DATABASE,

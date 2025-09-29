@@ -9,7 +9,7 @@ const SequelizeStore = require("connect-session-sequelize")(session.Store);
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Database connection
-const dbHost = process.env.NODE_ENV === 'development' && !process.env.DOCKER ? 'localhost' : process.env.DB_HOST;
+const dbHost = process.env.DB_HOST;
 
 const sequelize = new Sequelize(
   process.env.MYSQL_DATABASE,
@@ -40,7 +40,7 @@ const sessionStore = new SequelizeStore({
 });
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  secret: process.env.SESSION_SECRET,
   store: sessionStore,
   resave: false,
   saveUninitialized: false,
@@ -93,7 +93,7 @@ async function testDatabaseConnection() {
 // Start server
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Registration: http://localhost:${PORT}/auth/register`);
+  console.log(`Registration: http://localhost:${PORT}`);
   
   // Test database connection 
   await testDatabaseConnection();
