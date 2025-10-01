@@ -1,164 +1,460 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard - FinTrack</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3B82F6',
-                        secondary: '#1E40AF',
-                        accent: '#10B981'
-                    }
-                }
-            }
-        }
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#3B82F6",
+              secondary: "#1E40AF",
+              accent: "#10B981",
+              success: "#10B981",
+              warning: "#F59E0B",
+              danger: "#EF4444",
+            },
+          },
+        },
+      };
     </script>
-</head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <style>
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+
+      .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+  </head>
+
+  <body class="bg-gradient-to-b from-gray-900 to-gray-500 min-h-screen">
     <!-- Navigation Bar -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center py-4">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <div class="inline-flex items-center justify-center w-10 h-10 bg-primary rounded-full mr-3">
-                        <i class="fas fa-wallet text-white"></i>
-                    </div>
-                    <h1 class="text-xl font-bold text-gray-900">FinTrack</h1>
-                </div>
-                
-                <!-- Navigation Links -->
-                <div class="flex items-center space-x-4">
-                    <a href="/dashboard" 
-                       class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition duration-200">
-                        <i class="fas fa-home mr-1"></i>Dashboard
-                    </a>
-                    <a href="/profile" 
-                       class="text-gray-600 hover:text-primary transition duration-200 px-4 py-2 rounded-lg hover:bg-gray-100">
-                        <i class="fas fa-user mr-1"></i>Profile
-                    </a>
-                    <a href="/auth/logout" 
-                       class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200">
-                        <i class="fas fa-sign-out-alt mr-1"></i>Logout
-                    </a>
-                </div>
+    <nav class="bg-gradient-to-b from-black to-transparent sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+          <!-- Logo -->
+          <div class="flex items-center">
+            <div
+              class="inline-flex items-center justify-center w-10 h-10 bg-primary rounded-full mr-3"
+            >
+              <i class="fas fa-wallet text-white"></i>
             </div>
+            <h1 class="text-xl font-bold text-gray-400">FinTrack</h1>
+          </div>
+
+          <!-- Navigation Links -->
+          <div class="flex items-center space-x-2">
+            <a
+              href="/dashboard"
+              class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition duration-200"
+            >
+              <i class="fas fa-home mr-1"></i>Dashboard
+            </a>
+            <a
+              href="/transactions"
+              class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg"
+            >
+              <i class="fas fa-exchange-alt mr-1"></i>Transactions
+            </a>
+            <a
+              href="/budgets"
+              class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg"
+            >
+              <i class="fas fa-chart-pie mr-1"></i>Budgets
+            </a>
+            <a
+              href="/categories"
+              class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg"
+            >
+              <i class="fas fa-tags mr-1"></i>Categories
+            </a>
+            <a
+              href="/profile"
+              class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg"
+            >
+              <i class="fas fa-user mr-1"></i>Profile
+            </a>
+            <a
+              href="/auth/logout"
+              class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200"
+            >
+              <i class="fas fa-sign-out-alt mr-1"></i>Logout
+            </a>
+          </div>
         </div>
+      </div>
     </nav>
 
     <div class="container mx-auto px-4 py-8">
-        <!-- Success/Error Messages -->
-        <% if (typeof success !== 'undefined' && success) { %>
-            <div class="max-w-4xl mx-auto mb-6">
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
-                    <div class="flex items-center">
-                        <i class="fas fa-check-circle mr-2"></i>
-                        <%= success %>
-                    </div>
-                </div>
-            </div>
-        <% } %>
-        
-        <% if (typeof error !== 'undefined' && error) { %>
-            <div class="max-w-4xl mx-auto mb-6">
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
-                    <div class="flex items-center">
-                        <i class="fas fa-exclamation-circle mr-2"></i>
-                        <%= error %>
-                    </div>
-                </div>
-            </div>
-        <% } %>
-
-        <!-- Balance Card - Top Priority -->
-        <div class=" mx-auto mb-8">
-            <div class="relative rounded-xl p-8 text-white overflow-hidden">
-                <div class="absolute inset-0 z-0">
-                    <img src="/img/balance_bg.png" alt="Balance Background" class="w-full h-full object-cover opacity-50">
-                </div>
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-700 to-transparent z-10"></div>
-                <div class="relative z-20">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-2xl font-semibold mb-2">Current Balance</h2>
-                        <p class="text-blue-100 mb-4">Hello <%= user.firstName %>! Here's your financial overview</p>
-                        <div class="text-4xl font-bold">
-                            <%= user.currency %> <%= user.balance %>
-                        </div>
-                    </div>
-                    <div class="flex space-x-4">
-                        <button onclick="openBalanceModal()" 
-                                class="bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold hover:text-blue-700 hover:bg-transparent transition duration-200 flex items-center">
-                            <i class="fas fa-edit mr-2"></i>Update Balance
-                        </button>
-                    </div>
-                </div>
-            </div>
+      <!-- Success/Error Messages -->
+      <% if (typeof success !=='undefined' && success) { %>
+      <div class="max-w-4xl mx-auto mb-6">
+        <div
+          class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg"
+        >
+          <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <%= success %>
+          </div>
         </div>
+      </div>
+      <% } %>
+
+      <% if (typeof error !=='undefined' && error) { %>
+      <div class="max-w-4xl mx-auto mb-6">
+        <div
+          class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg"
+        >
+          <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <%= error %>
+          </div>
+        </div>
+      </div>
+      <% } %>
+
+      <!-- Balance Card - Top Priority -->
+      <div class="mx-auto">
+        <div class="relative rounded-xl p-8 text-white overflow-hidden">
+          <div class="absolute inset-0 z-0">
+            <img
+              src="/img/balance_bg.png"
+              alt="Balance Background"
+              class="w-full h-full object-cover opacity-50 blur-sm"
+            />
+          </div>
+          <div
+            class="absolute inset-0 bg-gradient-to-r from-blue-700 to-transparent z-10"
+          ></div>
+          <div class="relative z-20">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-2xl font-semibold mb-2">Current Balance</h2>
+                <p class="text-blue-100 mb-4">
+                  Hello <%= user.firstName %>! Here's your financial overview
+                </p>
+                <div class="text-4xl font-bold">
+                  <%= user.currency %> <%= user.balance %>
+                </div>
+              </div>
+              <div class="flex space-x-4">
+                <button
+                  onclick="openBalanceModal()"
+                  class="bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold hover:text-blue-700 hover:bg-white transition duration-200 flex items-center"
+                >
+                  <i class="fas fa-edit mr-2"></i>Update Balance
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <%- include('partials/quickStats') %>
+
+    <!-- Quick Actions -->
+    <%- include('partials/quickActions') %>
+
+    <!-- Improved Grid Layout -->
+    <div class="max-w-7xl mx-auto px-4">
+      <!-- Top Row - Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <%- include('partials/spendingChart') %> <%-
+        include('partials/incomeAnalytics') %>
+      </div>
+
+      <!-- Middle Row - Income and Transactions -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <%- include('partials/otherIncome') %> <%-
+        include('partials/recentTransactions') %>
+      </div>
+
+      <!-- Bottom Row - Budget and Goals -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <%- include('partials/budgetOverview') %> <%-
+        include('partials/savingGoals') %>
+      </div>
     </div>
 
     <!-- Balance Update Modal -->
-    <div id="balanceModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-2xl font-semibold text-gray-800">Update Balance</h3>
-                <button onclick="closeBalanceModal()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-            
-            <form action="/dashboard/update-balance" method="POST" id="balanceForm">
-                <div class="mb-6">
-                    <label for="newBalance" class="block text-sm font-medium text-gray-700 mb-2">
-                        New Balance (<%= user.currency %>)
-                    </label>
-                    <input type="number" 
-                           id="newBalance" 
-                           name="newBalance" 
-                           step="0.01"
-                           value="<%= user.balance %>"
-                           required 
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200">
-                </div>
-                
-                <div class="flex space-x-4">
-                    <button type="button" 
-                            onclick="closeBalanceModal()"
-                            class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition duration-200">
-                        Cancel
-                    </button>
-                    <button type="submit" 
-                            class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200">
-                        Update Balance
-                    </button>
-                </div>
-            </form>
+    <div
+      id="balanceModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-semibold text-gray-800">Update Balance</h3>
+          <button
+            onclick="closeBalanceModal()"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
         </div>
+
+        <form action="/dashboard/update-balance" method="POST" id="balanceForm">
+          <div class="mb-6">
+            <label
+              for="newBalance"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              New Balance (<%= user.currency %>)
+            </label>
+            <input
+              type="number"
+              id="newBalance"
+              name="newBalance"
+              step="0.01"
+              value="<%= user.balance %>"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+            />
+          </div>
+
+          <div class="flex space-x-4">
+            <button
+              type="button"
+              onclick="closeBalanceModal()"
+              class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition duration-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200"
+            >
+              Update Balance
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <script>
-        function openBalanceModal() {
-            document.getElementById('balanceModal').classList.remove('hidden');
-            document.getElementById('balanceModal').classList.add('flex');
-        }
+      function openBalanceModal() {
+        document.getElementById("balanceModal").classList.remove("hidden");
+        document.getElementById("balanceModal").classList.add("flex");
+      }
 
-        function closeBalanceModal() {
-            document.getElementById('balanceModal').classList.add('hidden');
-            document.getElementById('balanceModal').classList.remove('flex');
-        }
+      function closeBalanceModal() {
+        document.getElementById("balanceModal").classList.add("hidden");
+        document.getElementById("balanceModal").classList.remove("flex");
+      }
 
-        // Close modal when clicking outside
-        document.getElementById('balanceModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeBalanceModal();
-            }
+      // Close modal when clicking outside
+      document
+        .getElementById("balanceModal")
+        .addEventListener("click", function (e) {
+          if (e.target === this) {
+            closeBalanceModal();
+          }
         });
+
+      // Initialize Charts
+      document.addEventListener("DOMContentLoaded", function () {
+        // Register the datalabels plugin
+        Chart.register(ChartDataLabels);
+        // Chart Data
+        const spendingData = {
+          labels: [
+            "Food & Dining",
+            "Transportation",
+            "Entertainment",
+            "Utilities",
+            "Shopping",
+            "Others",
+          ],
+          data: [456, 320, 180, 245, 150, 89],
+          backgroundColor: [
+            "#F59E0B",
+            "#10B981",
+            "#EF4444",
+            "#3B82F6",
+            "#8B5CF6",
+            "#6B7280",
+          ],
+        };
+
+        // Doughnut Chart
+        const spendingCtx = document
+          .getElementById("spendingChart")
+          .getContext("2d");
+        new Chart(spendingCtx, {
+          type: "doughnut",
+          data: {
+            labels: spendingData.labels,
+            datasets: [
+              {
+                data: spendingData.data,
+                backgroundColor: spendingData.backgroundColor,
+                borderWidth: 0,
+                hoverOffset: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  padding: 20,
+                  usePointStyle: true,
+                  font: { size: 12 },
+                },
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    const label = context.label || "";
+                    const value = context.parsed;
+                    const total = context.dataset.data.reduce(
+                      (a, b) => a + b,
+                      0,
+                    );
+                    const percentage = ((value / total) * 100).toFixed(1);
+                    return `${label}: $${value} (${percentage}%)`;
+                  },
+                },
+              },
+            },
+          },
+        });
+        // Bar Chart
+        const incomeSourcesData = {
+          labels: [
+            "Monthly Salary",
+            "Freelance",
+            "Investments",
+            "Side Hustles",
+            "Other Income",
+          ],
+          currentBalance: [4250, 800, 150, 300, 75],
+        };
+
+        const incomeCtx = document
+          .getElementById("incomeAnalyticsChart")
+          .getContext("2d");
+        new Chart(incomeCtx, {
+          type: "bar",
+          data: {
+            labels: incomeSourcesData.labels,
+            datasets: [
+              {
+                label: "Current Balance",
+                data: incomeSourcesData.currentBalance,
+                backgroundColor: [
+                  "#F59E0B",
+                  "#10B981",
+                  "#EF4444",
+                  "#3B82F6",
+                  "#8B5CF6",
+                ],
+                borderColor: [
+                  "#D97706",
+                  "#059669",
+                  "#DC2626",
+                  "#2563EB",
+                  "#7C3AED",
+                ],
+                borderWidth: 1,
+                borderRadius: 4,
+                borderSkipped: false,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false,
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return `Current Balance: $${context.parsed.y.toLocaleString()}`;
+                  },
+                },
+              },
+              datalabels: {
+                display: true,
+                color: "#374151",
+                font: {
+                  size: 12,
+                  weight: "bold",
+                },
+                formatter: function (value) {
+                  return "$" + value.toLocaleString();
+                },
+                anchor: "end",
+                align: "top",
+                offset: 4,
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: "Current Balance ($)",
+                  font: {
+                    size: 12,
+                    weight: "bold",
+                  },
+                },
+                grid: {
+                  color: "rgba(0, 0, 0, 0.1)",
+                  drawBorder: false,
+                },
+                ticks: {
+                  callback: function (value) {
+                    return "$" + value.toLocaleString();
+                  },
+                  font: {
+                    size: 11,
+                  },
+                },
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: "Income Sources",
+                  font: {
+                    size: 12,
+                    weight: "bold",
+                  },
+                },
+                grid: {
+                  display: false,
+                },
+                ticks: {
+                  font: {
+                    size: 11,
+                  },
+                  maxRotation: 45,
+                  minRotation: 0,
+                },
+              },
+            },
+          },
+        });
+      });
     </script>
-</body>
+  </body>
 </html>
