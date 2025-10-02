@@ -18,6 +18,16 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Method PUT and DELETE requests
+app.use((req, res, next) => {
+  if (req.body && typeof req.body === 'object' && '_method' in req.body) {
+    const method = req.body._method;
+    delete req.body._method;
+    req.method = method;
+  }
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Database connection
@@ -54,10 +64,12 @@ sessionStore.sync();
 
 const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 const { showDashboard, updateBalance } = require('./controllers/authController');
 
 app.use('/auth', authRoutes);
 app.use('/profile', profileRoutes);
+app.use('/categories', categoryRoutes);
 
 app.get('/dashboard', showDashboard);
 app.post('/dashboard/update-balance', updateBalance);
