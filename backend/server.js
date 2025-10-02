@@ -65,11 +65,13 @@ sessionStore.sync();
 const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
+const savingGoalRoutes = require('./routes/savingGoalRoutes');
 const { showDashboard, updateBalance } = require('./controllers/authController');
 
 app.use('/auth', authRoutes);
 app.use('/profile', profileRoutes);
 app.use('/categories', categoryRoutes);
+app.use('/saving-goals', savingGoalRoutes);
 
 app.get('/dashboard', showDashboard);
 app.post('/dashboard/update-balance', updateBalance);

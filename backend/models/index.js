@@ -1,5 +1,6 @@
 const User = require('./User');
 const Category = require('./Category');
+const SavingGoal = require('./SavingGoal');
 
 User.hasMany(Category, { 
   foreignKey: 'userId', 
@@ -12,7 +13,19 @@ Category.belongsTo(User, {
   as: 'user'
 });
 
+User.hasMany(SavingGoal, { 
+  foreignKey: 'userId', 
+  as: 'savingGoals',
+  onDelete: 'CASCADE'
+});
+
+SavingGoal.belongsTo(User, { 
+  foreignKey: 'userId', 
+  as: 'user'
+});
+
 module.exports = {
   User,
-  Category
+  Category,
+  SavingGoal
 };

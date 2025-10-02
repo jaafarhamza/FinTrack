@@ -2,28 +2,62 @@
 <div class="bg-gray-200 rounded-xl shadow-lg p-6">
   <div class="flex items-center justify-between mb-6">
     <h3 class="text-xl font-semibold text-gray-800">Saving Goals</h3>
-    <a href="/saving-goals" class="text-primary hover:text-secondary transition duration-200">
+    <a
+      href="/saving-goals"
+      class="text-primary hover:text-secondary transition duration-200"
+    >
       <i class="fas fa-external-link-alt mr-1"></i>Manage
     </a>
   </div>
 
   <div class="space-y-6">
-    <div class="border-l-4 border-blue-500 pl-4">
-      <div class="flex items-center justify-between mb-2">
-        <h4 class="font-medium text-gray-800">Emergency Fund</h4>
-        <span class="text-sm font-semibold text-blue-600">$2,400 / $5,000</span>
+    <% if (typeof savingGoals !== 'undefined' && savingGoals && savingGoals.length > 0) { %>
+      <% savingGoals.slice(0, 3).forEach(goal => { %>
+        <div class="border-l-4 <%= goal.status === 'Completed' ? 'border-green-500' : goal.status === 'Paused' ? 'border-yellow-500' : 'border-blue-500' %> pl-4">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-medium text-gray-800"><%= goal.name %></h4>
+            <span class="text-sm font-semibold <%= goal.status === 'Completed' ? 'text-green-600' : goal.status === 'Paused' ? 'text-yellow-600' : 'text-blue-600' %>">
+              $<%= parseFloat(goal.currentAmount).toFixed(2) %> / $<%= parseFloat(goal.targetAmount).toFixed(2) %>
+            </span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+            <% 
+              const progressWidth = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
+              const progressColor = goal.status === 'Completed' ? 'bg-green-500' : goal.status === 'Paused' ? 'bg-yellow-500' : 'bg-blue-500';
+            %>
+            <div class="<%= progressColor %> h-2 rounded-full progress-bar" data-width="<%= progressWidth %>%"></div>
+          </div>
+          <p class="text-xs text-gray-500">
+            <%= Math.round((goal.currentAmount / goal.targetAmount) * 100) %>% complete
+            <% if (goal.deadline) { %>
+              • Target: <%= new Date(goal.deadline).toLocaleDateString() %>
+            <% } %>
+          </p>
+        </div>
+      <% }); %>
+      
+      <% if (savingGoals.length > 3) { %>
+        <div class="text-center pt-2">
+          <p class="text-xs text-gray-500">
+            And <%= savingGoals.length - 3 %> more goal<%= savingGoals.length - 3 > 1 ? 's' : '' %>
+          </p>
+        </div>
+      <% } %>
+    <% } else { %>
+      <div class="text-center py-4">
+        <i class="fas fa-piggy-bank text-3xl text-gray-400 mb-2"></i>
+        <p class="text-sm text-gray-500 mb-3">No saving goals yet</p>
+        <p class="text-xs text-gray-400">Create your first goal to start saving</p>
       </div>
-      <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
-        <div class="bg-blue-500 h-2 rounded-full" style="width: 48%"></div>
-      </div>
-      <p class="text-xs text-gray-500">48% complete • Target: Dec 2024</p>
-    </div>
+    <% } %>
   </div>
 
   <div class="mt-6 pt-4 border-t border-gray-200">
-    <button
-      class="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-200">
+    <a
+      href="/saving-goals"
+      class="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-200 flex items-center justify-center"
+    >
       <i class="fas fa-plus mr-2"></i>Create New Goal
-    </button>
+    </a>
   </div>
 </div>
