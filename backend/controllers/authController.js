@@ -122,33 +122,6 @@ const login = async (req, res) => {
   }
 };
 
-const showDashboard = async (req, res) => {
-  try {
-    if (!req.session.userId) {
-      return res.redirect('/auth/login');
-    }
-
-    const { SavingGoal } = require('../models');
-    const savingGoals = await SavingGoal.findAll({
-      where: { userId: req.session.userId },
-      order: [['createdAt', 'DESC']],
-      limit: 5 
-    });
-    
-    res.render('dashboard', {
-      title: 'Dashboard - FinTrack',
-      user: req.session.user,
-      savingGoals: savingGoals
-    });
-  } catch (error) {
-    console.error('Dashboard error:', error);
-    res.render('dashboard', {
-      title: 'Dashboard - FinTrack',
-      user: req.session.user,
-      savingGoals: []
-    });
-  }
-};
 
 // Update user balance
 const updateBalance = async (req, res) => {
@@ -421,7 +394,6 @@ module.exports = {
   register,
   showLogin,
   login,
-  showDashboard,
   updateBalance,
   logout,
   showForgotPassword,

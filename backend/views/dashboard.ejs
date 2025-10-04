@@ -176,16 +176,16 @@
     <%- include('partials/quickActions') %>
 
     <!-- Improved Grid Layout -->
-    <div class="max-w-7xl mx-auto px-4">
+    <div class=" mx-auto px-4">
       <!-- Top Row - Charts -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <%- include('partials/spendingChart') %> <%-
         include('partials/incomeAnalytics') %>
       </div>
 
-      <!-- Middle Row - Income and Transactions -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <%- include('partials/otherIncome') %> <%-
+      <!-- Middle Row - Income, Expenses and Transactions -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <%- include('partials/otherIncome') %> <%- include('partials/expenseDetails') %> <%-
         include('partials/recentTransactions') %>
       </div>
 
@@ -469,6 +469,14 @@
           bar.style.width = width;
         });
       });
+
+      function openTransactionModal(type = '') {
+        if (type) {
+          window.location.href = `/transactions?modal=${type}`;
+        } else {
+          window.location.href = '/transactions';
+        }
+      }
     </script>
   </body>
 </html>
