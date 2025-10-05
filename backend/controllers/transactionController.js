@@ -449,6 +449,75 @@ const calculateQuickStats = async (userId, year, month) => {
   }
 };
 
+// Format spending data for chart
+const formatSpendingChartData = (monthlyExpenses) => {
+  const colors = [
+    "#F59E0B", 
+    "#10B981", 
+    "#EF4444",  
+    "#3B82F6", 
+    "#8B5CF6", 
+    "#6B7280", 
+    "#F97316",
+    "#06B6D4", 
+    "#84CC16", 
+    "#EC4899"  
+  ];
+
+  const labels = [];
+  const data = [];
+  const backgroundColor = [];
+
+  monthlyExpenses.forEach((expense, index) => {
+    const categoryName = expense.category ? expense.category.name : 'Uncategorized';
+    labels.push(categoryName);
+    data.push(parseFloat(expense.dataValues.total));
+    backgroundColor.push(colors[index % colors.length]);
+  });
+
+  return {
+    labels,
+    data,
+    backgroundColor
+  };
+};
+
+// Format income data for chart
+const formatIncomeChartData = (monthlyIncome) => {
+  const colors = [
+    "#F59E0B", 
+    "#10B981", 
+    "#EF4444", 
+    "#3B82F6", 
+    "#8B5CF6", 
+  ];
+
+  const labels = [];
+  const data = [];
+  const backgroundColor = [];
+  const borderColor = [
+    "#D97706", 
+    "#059669", 
+    "#DC2626", 
+    "#2563EB", 
+    "#7C3AED", 
+  ];
+
+  monthlyIncome.forEach((income, index) => {
+    const categoryName = income.category ? income.category.name : 'Uncategorized';
+    labels.push(categoryName);
+    data.push(parseFloat(income.dataValues.total));
+    backgroundColor.push(colors[index % colors.length]);
+  });
+
+  return {
+    labels,
+    data,
+    backgroundColor,
+    borderColor
+  };
+};
+
 const showDashboard = async (req, res) => {
   try {
     if (!req.session.userId) {
@@ -543,6 +612,10 @@ const showDashboard = async (req, res) => {
     
     const balanceData = await calculateCurrentBalance(req.session.userId);
     
+    // Format chart data
+    const spendingChartData = formatSpendingChartData(monthlyExpenses);
+    const incomeChartData = formatIncomeChartData(monthlyIncome);
+    
     req.session.user.balance = balanceData.currentBalance;
     
     res.render('dashboard', {
@@ -555,7 +628,9 @@ const showDashboard = async (req, res) => {
       monthlyTotals: monthlyTotals,
       budgetOverview: budgetOverview,
       quickStats: quickStats,
-      balanceData: balanceData
+      balanceData: balanceData,
+      spendingChartData: spendingChartData,
+      incomeChartData: incomeChartData
     });
   } catch (error) {
     console.error('Dashboard error:', error);
@@ -579,6 +654,17 @@ const showDashboard = async (req, res) => {
         totalExpenses: 0,
         savingGoalsProgress: 0,
         currentBalance: 0
+      },
+      spendingChartData: {
+        labels: [],
+        data: [],
+        backgroundColor: []
+      },
+      incomeChartData: {
+        labels: [],
+        data: [],
+        backgroundColor: [],
+        borderColor: []
       }
     });
   }
