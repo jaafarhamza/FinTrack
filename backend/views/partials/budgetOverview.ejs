@@ -2,21 +2,65 @@
 <div class="bg-gray-200 rounded-xl shadow-lg p-6">
   <div class="flex items-center justify-between mb-6">
     <h3 class="text-xl font-semibold text-gray-800">Budget Overview</h3>
-    <a href="/budgets" class="text-primary hover:text-secondary transition duration-200">
+    <a
+      href="/budgets"
+      class="text-primary hover:text-secondary transition duration-200"
+    >
       <i class="fas fa-external-link-alt mr-1"></i>Manage Budgets
     </a>
   </div>
 
-  <div class="space-y-6">
-    <div>
-      <div class="flex items-center justify-between mb-2">
-        <span class="font-medium text-gray-700">Food & Dining</span>
-        <span class="text-sm text-gray-600">$456 / $600</span>
-      </div>
-      <div class="w-full bg-gray-200 rounded-full h-2">
-        <div class="bg-yellow-500 h-2 rounded-full" style="width: 76%"></div>
-      </div>
-      <p class="text-xs text-yellow-600 mt-1">76% used - $144 remaining</p>
+  
+  <% if (typeof budgetOverview !== 'undefined' && budgetOverview && budgetOverview.length > 0) { %>
+    <div class="space-y-3">
+      <% budgetOverview.forEach(budget => { %>
+        <div class="bg-white rounded-lg p-3 shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex-1">
+              <span class="font-medium text-gray-800"><%= budget.name %></span>
+              <% if (budget.category) { %>
+                <span class="text-xs text-gray-500 ml-2">(<%= budget.category.name %>)</span>
+              <% } %>
+            </div>
+            <span class="text-sm font-semibold text-gray-700">
+              $<%= parseFloat(budget.spentAmount).toFixed(2) %> / $<%= parseFloat(budget.maxAmount).toFixed(2) %>
+            </span>
+          </div>
+          
+          <!-- Progress Bar -->
+          <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+            <div class="bg-<%= budget.getStatusColor() %>-500 h-2 rounded-full transition-all duration-300" style="width: <%= Math.min(budget.getSpentPercentage(), 100) %>%"></div>
+          </div>
+          
+          <!-- Status and Remaining -->
+          <div class="flex items-center justify-between">
+            <p class="text-xs text-<%= budget.getStatusColor() %>-600 font-medium">
+              <%= budget.getSpentPercentage().toFixed(1) %>% used
+              <% if (budget.isExceeded()) { %>
+                - <span class="text-red-600">$<%= (budget.spentAmount - budget.maxAmount).toFixed(2) %> over budget</span>
+              <% } else { %>
+                - $<%= budget.getRemainingAmount().toFixed(2) %> remaining
+              <% } %>
+            </p>
+            
+            <!-- Status Badge -->
+            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-<%= budget.getStatusColor() %>-200 text-<%= budget.getStatusColor() %>-800">
+              <%= budget.isExceeded() ? 'Exceeded' : (budget.getSpentPercentage() >= 90 ? 'Near Limit' : 'On Track') %>
+            </span>
+          </div>
+        </div>
+      <% }); %>
     </div>
-  </div>
+  <% } else { %>
+    <div class="text-center py-8">
+      <div class="bg-white rounded-lg p-6 shadow-sm">
+        <i class="fas fa-chart-pie text-4xl text-gray-400 mb-3"></i>
+        <h4 class="text-lg font-medium text-gray-600 mb-2">No Budgets Yet</h4>
+        <p class="text-sm text-gray-500 mb-4">Create your first budget to start tracking your spending</p>
+        <a href="/budgets" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition duration-200">
+          <i class="fas fa-plus mr-2"></i>Create Budget
+        </a>
+      </div>
+    </div>
+  <% } %>
 </div>

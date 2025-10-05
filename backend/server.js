@@ -67,6 +67,7 @@ const profileRoutes = require('./routes/profileRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const savingGoalRoutes = require('./routes/savingGoalRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
+const budgetRoutes = require('./routes/budgetRoutes');
 const { updateBalance } = require('./controllers/authController');
 const { showDashboard } = require('./controllers/transactionController');
 
@@ -75,6 +76,7 @@ app.use('/profile', profileRoutes);
 app.use('/categories', categoryRoutes);
 app.use('/saving-goals', savingGoalRoutes);
 app.use('/transactions', transactionRoutes);
+app.use('/budgets', budgetRoutes);
 
 app.get('/dashboard', showDashboard);
 app.post('/dashboard/update-balance', updateBalance);

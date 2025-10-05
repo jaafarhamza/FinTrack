@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Management - FinTrack</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#1E40AF',
+                        accent: '#10B981',
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-b from-gray-900 to-gray-500 min-h-screen">
+    <!-- Navigation Bar -->
+    <nav class="bg-gradient-to-b from-black to-transparent sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <div class="inline-flex items-center justify-center w-10 h-10 bg-primary rounded-full mr-3">
+                        <i class="fas fa-wallet text-white"></i>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-400">FinTrack</h1>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="flex items-center space-x-2">
+                    <a href="/dashboard" class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg">
+                        <i class="fas fa-home mr-1"></i>Dashboard
+                    </a>
+                    <a href="/transactions" class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg">
+                        <i class="fas fa-exchange-alt mr-1"></i>Transactions
+                    </a>
+                    <a href="/budgets" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition duration-200">
+                        <i class="fas fa-chart-pie mr-1"></i>Budgets
+                    </a>
+                    <a href="/categories" class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg">
+                        <i class="fas fa-tags mr-1"></i>Categories
+                    </a>
+                    <a href="/saving-goals" class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg">
+                        <i class="fas fa-piggy-bank mr-1"></i>Saving Goals
+                    </a>
+                    <a href="/profile" class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg">
+                        <i class="fas fa-user mr-1"></i>Profile
+                    </a>
+                    <a href="/auth/logout" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Success/Error Messages -->
+        <% if (typeof success !== 'undefined' && success) { %>
+        <div class="max-w-7xl mx-auto mb-6">
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <%= success %>
+                </div>
+            </div>
+        </div>
+        <% } %>
+
+        <% if (typeof error !== 'undefined' && error) { %>
+        <div class="max-w-7xl mx-auto mb-6">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    <%= error %>
+                </div>
+            </div>
+        </div>
+        <% } %>
+
+        <!-- Header Section -->
+        <div class="max-w-7xl mx-auto mb-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2">Budget Management</h1>
+                    <p class="text-gray-300">Plan and track your monthly spending by category</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="openBudgetModal()" class="bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-secondary transition duration-200 flex items-center">
+                        <i class="fas fa-plus mr-2"></i>Create Budget
+                    </button>
+                    <form method="POST" action="/budgets/refresh" class="inline">
+                        <input type="hidden" name="year" value="<%= currentYear %>">
+                        <input type="hidden" name="month" value="<%= currentMonth %>">
+                        <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-200 flex items-center">
+                            <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Month/Year Navigation -->
+        <div class="max-w-7xl mx-auto mb-8">
+            <div class="bg-gray-200 rounded-xl p-6 shadow-lg">
+                <form method="GET" action="/budgets" class="flex flex-wrap gap-4 items-end">
+                    <div class="flex-1 min-w-[150px]">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Month</label>
+                        <select name="month" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <% months.forEach(month => { %>
+                                <option value="<%= month.value %>" <%= currentMonth === month.value ? 'selected' : '' %>><%= month.name %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[150px]">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Year</label>
+                        <select name="year" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <% availableYears.forEach(year => { %>
+                                <option value="<%= year %>" <%= currentYear === year ? 'selected' : '' %>><%= year %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div>
+                        <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:bg-secondary transition duration-200">
+                            <i class="fas fa-search mr-2"></i>View Budgets
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Budgets List -->
+        <div class="max-w-7xl mx-auto">
+            <% if (budgets && budgets.length > 0) { %>
+                <div class="bg-gray-200 rounded-xl shadow-lg overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Budget Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Budget Amount</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spent</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <% budgets.forEach(budget => { %>
+                                    <tr class="hover:bg-gray-50 transition duration-200">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            <%= budget.name %>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <%= budget.category ? budget.category.name : 'General' %>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            $<%= parseFloat(budget.maxAmount).toFixed(2) %>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            $<%= parseFloat(budget.spentAmount).toFixed(2) %>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold <%= budget.getRemainingAmount() >= 0 ? 'text-green-600' : 'text-red-600' %>">
+                                            $<%= budget.getRemainingAmount().toFixed(2) %>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                                <div class="bg-<%= budget.getStatusColor() %>-500 h-2 rounded-full progress-bar" style="width: <%= Math.min(budget.getSpentPercentage(), 100) %>%"></div>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1"><%= budget.getSpentPercentage().toFixed(1) %>%</p>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-<%= budget.getStatusColor() %>-200 text-<%= budget.getStatusColor() %>-800">
+                                                <%= budget.isExceeded() ? 'Exceeded' : (budget.getSpentPercentage() >= 90 ? 'Near Limit' : 'On Track') %>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div class="flex space-x-2">
+                                                <button onclick="editBudget(<%= budget.id %>, '<%= budget.name %>', '<%= budget.month %>', '<%= budget.year %>', '<%= budget.maxAmount %>', '<%= budget.categoryId || '' %>')" class="text-blue-600 hover:text-blue-800 transition duration-200">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button onclick="deleteBudget(<%= budget.id %>)" class="text-red-600 hover:text-red-800 transition duration-200">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="text-center py-12">
+                    <div class="bg-gray-200 rounded-xl p-8">
+                        <i class="fas fa-chart-pie text-6xl text-gray-400 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-600 mb-2">No Budgets Yet</h3>
+                        <p class="text-gray-500 mb-6">Start planning your finances by creating your first budget</p>
+                        <button onclick="openBudgetModal()" class="bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-secondary transition duration-200">
+                            <i class="fas fa-plus mr-2"></i>Create Your First Budget
+                        </button>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Budget Modal -->
+    <div id="budgetModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 id="modalTitle" class="text-2xl font-semibold text-gray-800">Create Budget</h3>
+                    <button onclick="closeBudgetModal()" class="text-gray-400 hover:text-gray-600 transition duration-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <form id="budgetForm" method="POST">
+                    <div class="mb-6">
+                        <label for="budgetName" class="block text-sm font-medium text-gray-700 mb-2">
+                            Budget Name *
+                        </label>
+                        <input type="text" id="budgetName" name="name" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200"
+                               placeholder="e.g., Food & Dining">
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="budgetCategory" class="block text-sm font-medium text-gray-700 mb-2">
+                            Category
+                        </label>
+                        <select id="budgetCategory" name="categoryId"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200">
+                            <option value="">General Budget (All Categories)</option>
+                            <% categories.forEach(category => { %>
+                                <option value="<%= category.id %>"><%= category.name %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="budgetAmount" class="block text-sm font-medium text-gray-700 mb-2">
+                            Budget Amount *
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                            <input type="number" id="budgetAmount" name="maxAmount" step="0.01" min="0.01" required
+                                   class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200"
+                                   placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label for="budgetMonth" class="block text-sm font-medium text-gray-700 mb-2">
+                                Month *
+                            </label>
+                            <select id="budgetMonth" name="month" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200">
+                                <% months.forEach(month => { %>
+                                    <option value="<%= month.value %>" <%= currentMonth === month.value ? 'selected' : '' %>><%= month.name %></option>
+                                <% }); %>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="budgetYear" class="block text-sm font-medium text-gray-700 mb-2">
+                                Year *
+                            </label>
+                            <select id="budgetYear" name="year" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-200">
+                                <% availableYears.forEach(year => { %>
+                                    <option value="<%= year %>" <%= currentYear === year ? 'selected' : '' %>><%= year %></option>
+                                <% }); %>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-4">
+                        <button type="button" onclick="closeBudgetModal()"
+                                class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition duration-200">
+                            Cancel
+                        </button>
+                        <button type="submit" id="submitButton"
+                                class="flex-1 bg-primary text-white py-3 rounded-lg font-semibold hover:bg-secondary transition duration-200">
+                            <i class="fas fa-plus mr-2"></i>Create Budget
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg max-w-md w-full">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800">Delete Budget</h3>
+                    <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-600 transition duration-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="mb-6">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-red-100 p-3 rounded-full mr-4">
+                            <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-800 font-medium">Are you sure you want to delete this budget?</p>
+                            <p class="text-sm text-gray-600 mt-1">This action cannot be undone and will remove all budget tracking data.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex space-x-4">
+                    <button onclick="closeDeleteModal()"
+                            class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition duration-200">
+                        Cancel
+                    </button>
+                    <button onclick="confirmDelete()" id="deleteButton"
+                            class="flex-1 bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition duration-200">
+                        <i class="fas fa-trash mr-2"></i>Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let editingBudgetId = null;
+        let deletingBudgetId = null;
+
+        function openBudgetModal(budgetId = null, name = '', month = '', year = '', maxAmount = '', categoryId = '') {
+            const modal = document.getElementById('budgetModal');
+            const form = document.getElementById('budgetForm');
+            const title = document.getElementById('modalTitle');
+            const submitButton = document.getElementById('submitButton');
+            const nameInput = document.getElementById('budgetName');
+            const categoryInput = document.getElementById('budgetCategory');
+            const amountInput = document.getElementById('budgetAmount');
+            const monthInput = document.getElementById('budgetMonth');
+            const yearInput = document.getElementById('budgetYear');
+
+            if (budgetId) {
+                editingBudgetId = budgetId;
+                title.textContent = 'Edit Budget';
+                submitButton.innerHTML = '<i class="fas fa-save mr-2"></i>Update Budget';
+                form.action = `/budgets/${budgetId}`;
+                form.method = 'POST';
+                
+                if (!form.querySelector('input[name="_method"]')) {
+                    const methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    methodInput.value = 'PUT';
+                    form.appendChild(methodInput);
+                }
+                
+                nameInput.value = name;
+                categoryInput.value = categoryId;
+                amountInput.value = maxAmount;
+                monthInput.value = month;
+                yearInput.value = year;
+            } else {
+                editingBudgetId = null;
+                title.textContent = 'Create Budget';
+                submitButton.innerHTML = '<i class="fas fa-plus mr-2"></i>Create Budget';
+                form.action = '/budgets';
+                form.method = 'POST';
+                
+                const methodInput = form.querySelector('input[name="_method"]');
+                if (methodInput) {
+                    methodInput.remove();
+                }
+                
+                nameInput.value = '';
+                categoryInput.value = '';
+                amountInput.value = '';
+                monthInput.value = '<%= currentMonth %>';
+                yearInput.value = '<%= currentYear %>';
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            nameInput.focus();
+        }
+
+        function closeBudgetModal() {
+            const modal = document.getElementById('budgetModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            editingBudgetId = null;
+        }
+
+        function editBudget(id, name, month, year, maxAmount, categoryId) {
+            openBudgetModal(id, name, month, year, maxAmount, categoryId);
+        }
+
+        function deleteBudget(id) {
+            deletingBudgetId = id;
+            const modal = document.getElementById('deleteModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            deletingBudgetId = null;
+        }
+
+        function confirmDelete() {
+            if (deletingBudgetId) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/budgets/${deletingBudgetId}`;
+                
+                const methodInput = document.createElement('input');
+                methodInput.type = 'hidden';
+                methodInput.name = '_method';
+                methodInput.value = 'DELETE';
+                form.appendChild(methodInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        document.getElementById('budgetModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeBudgetModal();
+            }
+        });
+
+        document.getElementById('deleteModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+
+        // Auto-hide success/error messages after 5 seconds
+        setTimeout(function () {
+            const messages = document.querySelectorAll('.bg-green-100, .bg-red-100');
+            messages.forEach(message => {
+                message.style.transition = 'opacity 0.5s';
+                message.style.opacity = '0';
+                setTimeout(() => message.remove(), 500);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

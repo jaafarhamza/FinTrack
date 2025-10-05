@@ -307,12 +307,17 @@ const showDashboard = async (req, res) => {
     }
 
     const { SavingGoal } = require('../models');
+    const { getBudgetOverview } = require('./budgetController');
     
     const savingGoals = await SavingGoal.findAll({
       where: { userId: req.session.userId },
       order: [['createdAt', 'DESC']],
       limit: 5 
     });
+
+    // Get budget overview
+    const budgetOverview = await getBudgetOverview(req.session.userId, 5);
+    console.log('Budget Overview Data:', budgetOverview);
 
     const recentTransactions = await Transaction.findAll({
       where: { userId: req.session.userId },
@@ -392,7 +397,8 @@ const showDashboard = async (req, res) => {
       recentTransactions: recentTransactions,
       monthlyIncome: monthlyIncome,
       monthlyExpenses: monthlyExpenses,
-      monthlyTotals: monthlyTotals
+      monthlyTotals: monthlyTotals,
+      budgetOverview: budgetOverview
     });
   } catch (error) {
     console.error('Dashboard error:', error);
@@ -403,7 +409,8 @@ const showDashboard = async (req, res) => {
       recentTransactions: [],
       monthlyIncome: [],
       monthlyExpenses: [],
-      monthlyTotals: { income: 0, expenses: 0, net: 0 }
+      monthlyTotals: { income: 0, expenses: 0, net: 0 },
+      budgetOverview: []
     });
   }
 };
