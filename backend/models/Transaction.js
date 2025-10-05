@@ -90,59 +90,6 @@ const Transaction = sequelize.define('Transaction', {
       if (transaction.amount < 0) {
         throw new Error('Transaction amount must be positive');
       }
-    },
-    afterCreate: async (transaction) => {
-      const User = require('./User');
-      const user = await User.findByPk(transaction.userId);
-      if (user) {
-        const balanceChange = transaction.type === 'Income' 
-          ? parseFloat(transaction.amount) 
-          : -parseFloat(transaction.amount);
-        
-        await user.update({
-          balance: parseFloat(user.balance) + balanceChange
-        });
-      }
-    },
-    afterUpdate: async (transaction) => {
-      const User = require('./User');
-      const user = await User.findByPk(transaction.userId);
-      if (user) {
-        const { Op } = require('sequelize');
-        const allTransactions = await Transaction.findAll({
-          where: { userId: transaction.userId }
-        });
-        
-        let totalBalance = 0;
-        allTransactions.forEach(t => {
-          const change = t.type === 'Income' 
-            ? parseFloat(t.amount) 
-            : -parseFloat(t.amount);
-          totalBalance += change;
-        });
-        
-        await user.update({ balance: totalBalance });
-      }
-    },
-    afterDestroy: async (transaction) => {
-      const User = require('./User');
-      const user = await User.findByPk(transaction.userId);
-      if (user) {
-        const { Op } = require('sequelize');
-        const remainingTransactions = await Transaction.findAll({
-          where: { userId: transaction.userId }
-        });
-        
-        let totalBalance = 0;
-        remainingTransactions.forEach(t => {
-          const change = t.type === 'Income' 
-            ? parseFloat(t.amount) 
-            : -parseFloat(t.amount);
-          totalBalance += change;
-        });
-        
-        await user.update({ balance: totalBalance });
-      }
     }
   }
 });

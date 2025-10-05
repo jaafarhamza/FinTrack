@@ -1,4 +1,4 @@
-const { Transaction, Category } = require('../models');
+const { Transaction, Category, SavingGoal } = require('../models');
 const { Op } = require('sequelize');
 
 const showTransactions = async (req, res) => {
@@ -300,6 +300,155 @@ const getTransactionStats = async (req, res) => {
   }
 };
 
+// Calculate current balance
+const calculateCurrentBalance = async (userId) => {
+  try {
+    const allIncomeTransactions = await Transaction.findAll({
+      where: {
+        userId: userId,
+        type: 'Income'
+      }
+    });
+
+    const allExpenseTransactions = await Transaction.findAll({
+      where: {
+        userId: userId,
+        type: 'Expense'
+      }
+    });
+
+    const totalIncome = allIncomeTransactions.reduce((total, transaction) => 
+      total + parseFloat(transaction.amount), 0
+    );
+
+    const totalExpenses = allExpenseTransactions.reduce((total, transaction) => 
+      total + parseFloat(transaction.amount), 0
+    );
+
+    const activeSavingGoals = await SavingGoal.findAll({
+      where: {
+        userId: userId,
+        status: 'Active'
+      }
+    });
+    
+    const savingGoalsProgress = activeSavingGoals.reduce((total, goal) => 
+      total + parseFloat(goal.currentAmount), 0
+    );
+
+    const currentBalance = totalIncome - totalExpenses - savingGoalsProgress;
+
+    return {
+      totalIncome,
+      totalExpenses,
+      savingGoalsProgress,
+      currentBalance
+    };
+  } catch (error) {
+    console.error('Calculate current balance error:', error);
+    return {
+      totalIncome: 0,
+      totalExpenses: 0,
+      savingGoalsProgress: 0,
+      currentBalance: 0
+    };
+  }
+};
+
+const calculateQuickStats = async (userId, year, month) => {
+  try {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+
+    const monthlyIncomeTransactions = await Transaction.findAll({
+      where: {
+        userId: userId,
+        type: 'Income',
+        date: {
+          [Op.between]: [startDate, endDate]
+        }
+      },
+      include: [
+        {
+          model: Category,
+          as: 'category',
+          attributes: ['id', 'name']
+        }
+      ]
+    });
+
+    const monthlyExpenseTransactions = await Transaction.findAll({
+      where: {
+        userId: userId,
+        type: 'Expense',
+        date: {
+          [Op.between]: [startDate, endDate]
+        }
+      }
+    });
+
+    let monthlySalary = 0;
+    const salaryTransactions = monthlyIncomeTransactions.filter(t => 
+      t.category && t.category.name.toLowerCase().includes('salary')
+    );
+    monthlySalary = salaryTransactions.reduce((total, transaction) => 
+      total + parseFloat(transaction.amount), 0
+    );
+
+    const totalIncome = monthlyIncomeTransactions.reduce((total, transaction) => 
+      total + parseFloat(transaction.amount), 0
+    );
+    const otherIncome = totalIncome - monthlySalary;
+
+    const monthlyExpenses = monthlyExpenseTransactions.reduce((total, transaction) => 
+      total + parseFloat(transaction.amount), 0
+    );
+
+    const activeSavingGoals = await SavingGoal.findAll({
+      where: {
+        userId: userId,
+        status: 'Active'
+      }
+    });
+    
+    const savingGoalsProgress = activeSavingGoals.reduce((total, goal) => 
+      total + parseFloat(goal.currentAmount), 0
+    );
+
+    // Get calculated current balance for percentage calculations
+    const balanceData = await calculateCurrentBalance(userId);
+    const userBalance = balanceData.currentBalance;
+
+    return {
+      monthlySalary: {
+        amount: monthlySalary,
+        percentage: userBalance > 0 ? ((monthlySalary / userBalance) * 100).toFixed(1) : 0
+      },
+      otherIncome: {
+        amount: otherIncome,
+        percentage: userBalance > 0 ? ((otherIncome / userBalance) * 100).toFixed(1) : 0
+      },
+      monthlyExpenses: {
+        amount: monthlyExpenses,
+        percentage: userBalance > 0 ? ((monthlyExpenses / userBalance) * 100).toFixed(1) : 0
+      },
+      savingGoalsProgress: {
+        amount: savingGoalsProgress,
+        totalGoals: activeSavingGoals.length,
+        hasActiveGoals: activeSavingGoals.length > 0
+      }
+    };
+  } catch (error) {
+    console.error('Calculate quick stats error:', error);
+    return {
+      monthlySalary: { amount: 0, percentage: 0 },
+      otherIncome: { amount: 0, percentage: 0 },
+      monthlyExpenses: { amount: 0, percentage: 0 },
+      savingGoalsProgress: { amount: 0, totalGoals: 0, hasActiveGoals: false }
+    };
+  }
+};
+
 const showDashboard = async (req, res) => {
   try {
     if (!req.session.userId) {
@@ -389,6 +538,12 @@ const showDashboard = async (req, res) => {
       currentYear, 
       currentMonth
     );
+
+    const quickStats = await calculateQuickStats(req.session.userId, currentYear, currentMonth);
+    
+    const balanceData = await calculateCurrentBalance(req.session.userId);
+    
+    req.session.user.balance = balanceData.currentBalance;
     
     res.render('dashboard', {
       title: 'Dashboard - FinTrack',
@@ -398,7 +553,9 @@ const showDashboard = async (req, res) => {
       monthlyIncome: monthlyIncome,
       monthlyExpenses: monthlyExpenses,
       monthlyTotals: monthlyTotals,
-      budgetOverview: budgetOverview
+      budgetOverview: budgetOverview,
+      quickStats: quickStats,
+      balanceData: balanceData
     });
   } catch (error) {
     console.error('Dashboard error:', error);
@@ -410,7 +567,19 @@ const showDashboard = async (req, res) => {
       monthlyIncome: [],
       monthlyExpenses: [],
       monthlyTotals: { income: 0, expenses: 0, net: 0 },
-      budgetOverview: []
+      budgetOverview: [],
+      quickStats: {
+        monthlySalary: { amount: 0, percentage: 0 },
+        otherIncome: { amount: 0, percentage: 0 },
+        monthlyExpenses: { amount: 0, percentage: 0 },
+        savingGoalsProgress: { amount: 0, totalGoals: 0, hasActiveGoals: false }
+      },
+      balanceData: {
+        totalIncome: 0,
+        totalExpenses: 0,
+        savingGoalsProgress: 0,
+        currentBalance: 0
+      }
     });
   }
 };
