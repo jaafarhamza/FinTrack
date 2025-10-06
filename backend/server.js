@@ -68,6 +68,7 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const savingGoalRoutes = require('./routes/savingGoalRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
+const exportRoutes = require('./routes/exportRoutes');
 const { showDashboard } = require('./controllers/transactionController');
 
 app.use('/auth', authRoutes);
@@ -76,6 +77,7 @@ app.use('/categories', categoryRoutes);
 app.use('/saving-goals', savingGoalRoutes);
 app.use('/transactions', transactionRoutes);
 app.use('/budgets', budgetRoutes);
+app.use('/export', exportRoutes);
 
 app.get('/dashboard', showDashboard);
 
