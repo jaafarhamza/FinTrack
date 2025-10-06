@@ -69,7 +69,9 @@ const savingGoalRoutes = require('./routes/savingGoalRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
 const exportRoutes = require('./routes/exportRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 const { showDashboard } = require('./controllers/transactionController');
+const schedulerService = require('./services/schedulerService');
 
 app.use('/auth', authRoutes);
 app.use('/profile', profileRoutes);
@@ -78,6 +80,7 @@ app.use('/saving-goals', savingGoalRoutes);
 app.use('/transactions', transactionRoutes);
 app.use('/budgets', budgetRoutes);
 app.use('/export', exportRoutes);
+app.use('/notifications', notificationRoutes);
 
 app.get('/dashboard', showDashboard);
 
@@ -118,5 +121,9 @@ app.listen(PORT, async () => {
   console.log(`Registration: http://localhost:${PORT}`);
   
   // Test database connection 
-  await testDatabaseConnection();
+  const dbConnected = await testDatabaseConnection();
+  
+  if (dbConnected) {
+    schedulerService.start();
+  }
 });

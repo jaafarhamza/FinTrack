@@ -55,6 +55,20 @@ const User = sequelize.define('User', {
   resetPasswordExpires: {
     type: DataTypes.DATE,
     allowNull: true,
+  },
+  emailNotifications: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    allowNull: false
+  },
+  budgetAlertThreshold: {
+    type: DataTypes.INTEGER,
+    defaultValue: 90,
+    allowNull: false,
+    validate: {
+      min: 50,
+      max: 100
+    }
   }
 }, {
   tableName: 'Users',

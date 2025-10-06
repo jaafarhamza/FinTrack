@@ -3,6 +3,7 @@ const Category = require('./Category');
 const SavingGoal = require('./SavingGoal');
 const Transaction = require('./Transaction');
 const Budget = require('./Budget');
+const Notification = require('./Notification');
 
 User.hasMany(Category, { 
   foreignKey: 'userId', 
@@ -70,10 +71,34 @@ Budget.belongsTo(Category, {
   as: 'category'
 });
 
+// Notification relationship
+User.hasMany(Notification, { 
+  foreignKey: 'userId', 
+  as: 'notifications',
+  onDelete: 'CASCADE'
+});
+
+Budget.hasMany(Notification, { 
+  foreignKey: 'budgetId', 
+  as: 'notifications',
+  onDelete: 'CASCADE'
+});
+
+Notification.belongsTo(User, { 
+  foreignKey: 'userId', 
+  as: 'user'
+});
+
+Notification.belongsTo(Budget, { 
+  foreignKey: 'budgetId', 
+  as: 'budget'
+});
+
 module.exports = {
   User,
   Category,
   SavingGoal,
   Transaction,
-  Budget
+  Budget,
+  Notification
 };

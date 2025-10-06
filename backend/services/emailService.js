@@ -283,6 +283,209 @@ class EmailService {
     </html>
     `;
   }
+
+  // alert email
+  async sendBudgetAlertEmail(email, userName, budget, categoryName, spentPercentage, isExceeded, overAmount) {
+    try {
+      const mailOptions = {
+        from: {
+          name: 'FinTrack',
+          address: process.env.EMAIL_USER
+        },
+        to: email,
+        subject: isExceeded ? '🚨 Budget Exceeded - FinTrack Alert' : '⚠️ Budget Warning - FinTrack Alert',
+        html: this.getBudgetAlertEmailTemplate(userName, budget, categoryName, spentPercentage, isExceeded, overAmount)
+      };
+
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log('Budget alert email sent successfully:', result.messageId);
+      return { success: true, messageId: result.messageId };
+    } catch (error) {
+      console.error('Error sending budget alert email:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get budget alert email HTML template
+  getBudgetAlertEmailTemplate(userName, budget, categoryName, spentPercentage, isExceeded, overAmount) {
+    const alertColor = isExceeded ? '#EF4444' : '#F59E0B';
+    const alertIcon = isExceeded ? '🚨' : '⚠️';
+    const alertTitle = isExceeded ? 'Budget Exceeded!' : 'Budget Warning!';
+    
+    return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Budget Alert - FinTrack</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f4f4f4;
+            }
+            .container {
+                background-color: white;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+            .header {
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            .logo {
+                background-color: #3B82F6;
+                color: white;
+                padding: 15px 30px;
+                border-radius: 8px;
+                display: inline-block;
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 20px;
+            }
+            .alert-box {
+                background-color: ${alertColor}15;
+                border: 2px solid ${alertColor};
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px 0;
+                text-align: center;
+            }
+            .alert-title {
+                color: ${alertColor};
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 10px;
+            }
+            .budget-details {
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+            .budget-item {
+                display: flex;
+                justify-content: space-between;
+                margin: 10px 0;
+                padding: 5px 0;
+                border-bottom: 1px solid #eee;
+            }
+            .budget-item:last-child {
+                border-bottom: none;
+            }
+            .budget-label {
+                font-weight: bold;
+                color: #666;
+            }
+            .budget-value {
+                color: #333;
+            }
+            .button {
+                display: inline-block;
+                background-color: #3B82F6;
+                color: white;
+                padding: 15px 30px;
+                text-decoration: none;
+                border-radius: 8px;
+                font-weight: bold;
+                margin: 20px 0;
+                transition: background-color 0.3s;
+            }
+            .button:hover {
+                background-color: #1E40AF;
+            }
+            .footer {
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid #eee;
+                font-size: 14px;
+                color: #666;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">FinTrack</div>
+                <h1>${alertIcon} Budget Alert</h1>
+            </div>
+            
+            <div class="alert-box">
+                <div class="alert-title">${alertTitle}</div>
+                <p style="margin: 0; font-size: 18px;">
+                    ${isExceeded ? 
+                      `Your budget has been exceeded by $${overAmount.toFixed(2)}!` : 
+                      `Your budget is at ${spentPercentage.toFixed(1)}% of its limit.`
+                    }
+                </p>
+            </div>
+            
+            <div class="content">
+                <p>Hello ${userName},</p>
+                
+                <p>We wanted to let you know about your budget status:</p>
+                
+                <div class="budget-details">
+                    <div class="budget-item">
+                        <span class="budget-label">Budget Name:</span>
+                        <span class="budget-value">${budget.name}</span>
+                    </div>
+                    <div class="budget-item">
+                        <span class="budget-label">Category:</span>
+                        <span class="budget-value">${categoryName}</span>
+                    </div>
+                    <div class="budget-item">
+                        <span class="budget-label">Budget Amount:</span>
+                        <span class="budget-value">$${parseFloat(budget.maxAmount).toFixed(2)}</span>
+                    </div>
+                    <div class="budget-item">
+                        <span class="budget-label">Amount Spent:</span>
+                        <span class="budget-value">$${parseFloat(budget.spentAmount).toFixed(2)}</span>
+                    </div>
+                    <div class="budget-item">
+                        <span class="budget-label">Percentage Used:</span>
+                        <span class="budget-value">${spentPercentage.toFixed(1)}%</span>
+                    </div>
+                    ${isExceeded ? `
+                    <div class="budget-item">
+                        <span class="budget-label">Amount Over Budget:</span>
+                        <span class="budget-value" style="color: #EF4444; font-weight: bold;">$${overAmount.toFixed(2)}</span>
+                    </div>
+                    ` : `
+                    <div class="budget-item">
+                        <span class="budget-label">Remaining Amount:</span>
+                        <span class="budget-value">$${(parseFloat(budget.maxAmount) - parseFloat(budget.spentAmount)).toFixed(2)}</span>
+                    </div>
+                    `}
+                </div>
+                
+                <div style="text-align: center;">
+                    <a href="${process.env.FRONTEND_URL || 'http://localhost:5000'}/budgets" class="button">View Budgets</a>
+                </div>
+                
+                <p>${isExceeded ? 
+                  'Consider reviewing your spending in this category and adjusting your budget if needed.' : 
+                  'You\'re approaching your budget limit. Consider monitoring your spending more closely.'
+                }</p>
+            </div>
+            
+            <div class="footer">
+                <p>This email was sent from FinTrack - Professional Financial Management Platform</p>
+                <p>You can manage your notification preferences in your account settings.</p>
+                <p>© 2024 FinTrack. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+  }
 }
 
 module.exports = new EmailService();

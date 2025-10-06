@@ -2,20 +2,35 @@ const bcrypt = require('bcrypt');
 const User = require('../models/User');
 
 // Show profile page
-const showProfile = (req, res) => {
+const showProfile = async (req, res) => {
   // Redirect to login if not authenticated
   if (!req.session.userId) {
     return res.redirect('/auth/login');
   }
   
-  res.render('profile', {
-    title: 'Profile - FinTrack',
-    user: req.session.user,
-    error: null,
-    success: null,
-    formData: {},
-    validationErrors: []
-  });
+  try {
+    // notification preferences
+    const user = await User.findByPk(req.session.userId);
+    
+    res.render('profile', {
+      title: 'Profile - FinTrack',
+      user: user,
+      error: null,
+      success: null,
+      formData: {},
+      validationErrors: []
+    });
+  } catch (error) {
+    console.error('Show profile error:', error);
+    res.render('profile', {
+      title: 'Profile - FinTrack',
+      user: req.session.user,
+      error: 'An error occurred while loading profile.',
+      success: null,
+      formData: {},
+      validationErrors: []
+    });
+  }
 };
 
 // Update profile

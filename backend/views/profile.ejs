@@ -24,54 +24,100 @@
     </script>
 </head>
 
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+<body class="bg-gradient-to-b from-indigo-950 to-blue-400 min-h-screen">
     <!-- Navigation Bar -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center py-4">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <div class="inline-flex items-center justify-center w-10 h-10 bg-primary rounded-full mr-3">
-                        <i class="fas fa-wallet text-white"></i>
-                    </div>
-                    <h1 class="text-xl font-bold text-gray-900">FinTrack</h1>
-                </div>
-
-                <!-- Navigation Links -->
-                <div class="flex items-center space-x-4">
-                    <a href="/dashboard" class="text-gray-600 hover:text-primary transition duration-200">
-                        <i class="fas fa-home mr-1"></i>Dashboard
-                    </a>
-                    <a href="/profile"
-                        class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition duration-200">
-                        <i class="fas fa-user mr-1"></i>Profile
-                    </a>
-                    <a href="/auth/logout"
-                        class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200">
-                        <i class="fas fa-sign-out-alt mr-1"></i>Logout
-                    </a>
-                </div>
+    <nav class="bg-gradient-to-b from-black to-transparent sticky top-0 z-30">
+        <div class="max-w-8xl mx-auto px-4">
+          <div class="flex justify-between items-center py-4 px-4">
+            <!-- Logo -->
+            <a href="/dashboard" class="flex items-center group">
+              <div
+                class="inline-flex items-center justify-center w-10 h-10 bg-primary rounded-full mr-3 transition-transform group-hover:scale-105"
+              >
+                <i class="fas fa-wallet text-white"></i>
+              </div>
+              <h1 class="text-xl font-bold text-gray-400 hidden sm:block group-hover:text-primary transition-colors">FinTrack</h1>
+            </a>
+  
+            <!-- Navigation Links -->
+            <div class="flex items-center justify-between space-x-2 flex-wrap">
+              <a
+                href="/dashboard"
+                class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition duration-200 flex items-center justify-center"
+                title="Dashboard"
+              >
+                <i class="fas fa-home"></i>
+              </a>
+              <a
+                href="/transactions"
+                class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg flex items-center justify-center"
+                title="Transactions"
+              >
+                <i class="fas fa-exchange-alt"></i>
+              </a>
+              <a
+                href="/budgets"
+                class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg flex items-center justify-center"
+                title="Budgets"
+              >
+                <i class="fas fa-chart-pie"></i>
+              </a>
+              <a
+                href="/categories"
+                class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg flex items-center justify-center"
+                title="Categories"
+              >
+                <i class="fas fa-tags"></i>
+              </a>
+              <a
+                href="/saving-goals"
+                class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg flex items-center justify-center"
+                title="Saving Goals"
+              >
+                <i class="fas fa-piggy-bank"></i>
+              </a>
+              <a
+                href="/notifications"
+                class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg flex items-center justify-center"
+                title="Notifications"
+              >
+                <i class="fas fa-bell"></i>
+              </a>
+              <a
+                href="/export"
+                class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg flex items-center justify-center"
+                title="Export"
+              >
+                <i class="fas fa-download"></i>
+              </a>
+              <a
+                href="/profile"
+                class="text-gray-300 hover:text-primary transition duration-200 px-4 py-2 bg-black bg-opacity-40 backdrop-blur-md rounded-lg flex items-center justify-center"
+                title="Profile"
+              >
+                <i class="fas fa-user"></i>
+              </a>
+              <a
+                href="/auth/logout"
+                class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200 flex items-center justify-center"
+                title="Logout"
+              >
+                <i class="fas fa-sign-out-alt"></i>
+              </a>
             </div>
+          </div>
         </div>
-    </nav>
+      </nav>
 
     <div class="container mx-auto px-4 py-8">
-        <div class="max-w-4xl mx-auto">
-            <!-- Account Information -->
-            <div class="bg-transparent flex">
-                <div>
-                    <h3 class="font-bold text-xl text-gray-700 mb-2">Account Balance</h3>
-                    <p class="text-2xl font-bold text-primary"> <%= user.currency %> <%= user.balance %>
-                    </p>
-                </div>
-            </div>
+        <div class=" mx-auto">
             <!-- Header -->
             <div class="text-center mb-8">
                 <div class="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-full mb-4">
                     <i class="fas fa-user text-white text-3xl"></i>
                 </div>
                 <h1 class="text-4xl font-bold text-gray-900 mb-2">Profile Settings</h1>
-                <p class="text-gray-600">Manage your account information and security settings</p>
+                <p class="text-gray-100">Manage your account information and security settings</p>
             </div>
 
             <!-- Messages -->
@@ -93,7 +139,7 @@
                         </div>
                         <% } %>
 
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                 <!-- Profile Information -->
                                 <div class="bg-white rounded-lg shadow-lg p-6">
                                     <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
@@ -212,6 +258,56 @@
                                         </button>
                                     </form>
                                 </div>
+
+                                <!-- Notification Preferences -->
+                                <div class="bg-white rounded-lg shadow-lg p-6">
+                                    <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                                        <i class="fas fa-bell mr-2 text-primary"></i>
+                                        Notification Preferences
+                                    </h2>
+
+                                    <form action="/notifications/preferences" method="POST" class="space-y-6">
+                                        <!-- Email Notifications -->
+                                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                            <div>
+                                                <h3 class="text-lg font-medium text-gray-800">Email Notifications</h3>
+                                                <p class="text-sm text-gray-600">Receive email alerts for budget overruns and warnings</p>
+                                            </div>
+                                            <label class="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" name="emailNotifications" 
+                                                       <%= user.emailNotifications ? 'checked' : '' %>
+                                                       class="sr-only peer">
+                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                            </label>
+                                        </div>
+
+                                        <!-- Budget Alert Threshold -->
+                                        <div>
+                                            <label for="budgetAlertThreshold" class="block text-sm font-medium text-gray-700 mb-2">
+                                                <i class="fas fa-percentage mr-1"></i>Budget Alert Threshold
+                                            </label>
+                                            <div class="relative">
+                                                <input type="range" id="budgetAlertThreshold" name="budgetAlertThreshold" 
+                                                       min="50" max="100" value="<%= user.budgetAlertThreshold || 90 %>"
+                                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider">
+                                                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                                    <span>50%</span>
+                                                    <span id="thresholdValue"><%= user.budgetAlertThreshold || 90 %>%</span>
+                                                    <span>100%</span>
+                                                </div>
+                                            </div>
+                                            <p class="text-sm text-gray-600 mt-2">
+                                                Get notified when your budget reaches this percentage of its limit
+                                            </p>
+                                        </div>
+
+                                        <!-- Update Preferences Button -->
+                                        <button type="submit"
+                                            class="w-full bg-primary hover:bg-secondary text-white font-semibold py-3 px-6 rounded-lg transition duration-200 transform hover:scale-105">
+                                            <i class="fas fa-save mr-2"></i>Update Notification Preferences
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
         </div>
     </div>
@@ -227,6 +323,14 @@
             } else {
                 this.setCustomValidity('');
             }
+        });
+
+        // Budget alert threshold slider
+        const thresholdSlider = document.getElementById('budgetAlertThreshold');
+        const thresholdValue = document.getElementById('thresholdValue');
+        
+        thresholdSlider.addEventListener('input', function() {
+            thresholdValue.textContent = this.value + '%';
         });
 
         // Auto-hide success messages after 5 seconds
